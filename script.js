@@ -2,6 +2,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const chatMessages = document.getElementById('chat-messages');
     const userInput = document.getElementById('user-input');
     const sendButton = document.getElementById('send-button');
+    const startOverlay = document.getElementById('start-overlay');
+    const startButton = document.getElementById('start-button');
     
     // Voice selection elements
     const botVoiceSelect = document.getElementById('bot-voice-select');
@@ -10,13 +12,98 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // TTS Configuration
     let isTtsEnabled = true;
+    let speechSynthesis = window.speechSynthesis;
     let currentlySpeaking = false;
     let speakQueue = [];
+    let currentUtterance = null;
     
-    // Initialize the TTS system
-    let voices = [];
-    const synth = window.speechSynthesis;
+    // Start experience button
+    startButton.addEventListener('click', () => {
+        startOverlay.style.display = 'none';
+        userInput.focus();
+    });
     
+    // Populate voice selection dropdowns
+    const populateVoiceSelections = () => {
+        // Get available voices and populate the dropdown
+        const populateVoices = () => {
+            const voices = speechSynthesis.getVoices();
+            
+            if (voices.length === 0) {
+                setTimeout(populateVoices, 100);
+                return;
+            }
+            
+            // Clear existing options
+            botVoiceSelect.innerHTML = '';
+            userVoiceSelect.innerHTML = '';
+            
+            // Add voice options
+            voices.forEach((voice, index) => {
+                const botOption = document.createElement('option');
+                botOption.value = index;
+                botOption.textContent = `${voice.name} (${voice.lang})`;
+                botVoiceSelect.appendChild(botOption);
+                
+                const userOption = document.createElement('option');
+                userOption.value = index;
+                userOption.textContent = `${voice.name} (${voice.lang})`;
+                userVoiceSelect.appendChild(userOption);
+                
+                // Select an elderly-sounding voice for the bot by default if available
+                if (voice.name.toLowerCase().includes('old') || 
+                    voice.name.toLowerCase().includes('elder') || 
+                    voice.name.toLowerCase().includes('female')) {
+                    botVoiceSelect.value = index;
+                }
+            });
+            
+            // Save voice preferences to localStorage
+            saveVoicePreferences();
+            
+            // Set initial voice preferences from localStorage
+            loadVoicePreferences();
+        };
+        
+        populateVoices();
+        
+        // Handle voice list changes (happens asynchronously)
+        speechSynthesis.onvoiceschanged = populateVoices;
+    };
+    
+    // Save voice preferences to localStorage
+    const saveVoicePreferences = () => {
+        localStorage.setItem('botVoice', botVoiceSelect.value);
+        localStorage.setItem('userVoice', userVoiceSelect.value);
+        localStorage.setItem('ttsEnabled', isTtsEnabled.toString());
+    }
+    
+    // Load voice preferences from localStorage
+    const loadVoicePreferences = () => {
+        const savedBotVoice = localStorage.getItem('botVoice');
+        const savedUserVoice = localStorage.getItem('userVoice');
+        const savedTtsEnabled = localStorage.getItem('ttsEnabled');
+        
+        if (savedBotVoice) botVoiceSelect.value = savedBotVoice;
+        if (savedUserVoice) userVoiceSelect.value = savedUserVoice;
+        if (savedTtsEnabled) {
+            isTtsEnabled = savedTtsEnabled === 'true';
+            ttsToggle.checked = isTtsEnabled;
+        }
+    }
+    
+    // Event listeners for voice settings
+    botVoiceSelect.addEventListener('change', saveVoicePreferences);
+    userVoiceSelect.addEventListener('change', saveVoicePreferences);
+    ttsToggle.addEventListener('change', () => {
+        isTtsEnabled = ttsToggle.checked;
+        saveVoicePreferences();
+        
+        if (!isTtsEnabled) {
+            stopSpeaking();
+        }
+    });
+
     // Conversation history for the LLM
     let conversationHistory = [
         {
@@ -53,88 +140,20 @@ NEVER reveal that you are scambaiting or that you understand they are a scammer.
         }
     ];
 
-    function populateVoiceSelections() {
-        // Function to get and populate voices
-        const populateVoices = () => {
-            voices = synth.getVoices();
-            
-            if (voices.length === 0) {
-                setTimeout(populateVoices, 500);
-                return;
-            }
-            
-            // Clear existing options
-            botVoiceSelect.innerHTML = '';
-            userVoiceSelect.innerHTML = '';
-            
-            // Add voice options
-            voices.forEach((voice, index) => {
-                const botOption = document.createElement('option');
-                botOption.value = index;
-                botOption.textContent = `${voice.name} (${voice.lang})`;
-                botVoiceSelect.appendChild(botOption);
-                
-                const userOption = document.createElement('option');
-                userOption.value = index;
-                userOption.textContent = `${voice.name} (${voice.lang})`;
-                userVoiceSelect.appendChild(userOption);
-                
-                // Select an elderly-sounding voice for the bot by default if available
-                if (voice.name.toLowerCase().includes('old') || 
-                    voice.name.toLowerCase().includes('elder') || 
-                    voice.name.toLowerCase().includes('female')) {
-                    botVoiceSelect.value = index;
-                }
-            });
-            
-            // Save voice preferences to localStorage
-            saveVoicePreferences();
-            
-            // Set initial voice preferences from localStorage
-            loadVoicePreferences();
-        };
-        
-        // Initial population attempt
-        populateVoices();
-        
-        // Handle voice list changes (happens asynchronously)
-        if (synth.onvoiceschanged !== undefined) {
-            synth.onvoiceschanged = populateVoices;
-        }
-    }
-
-    function saveVoicePreferences() {
-        localStorage.setItem('botVoice', botVoiceSelect.value);
-        localStorage.setItem('userVoice', userVoiceSelect.value);
-        localStorage.setItem('ttsEnabled', isTtsEnabled.toString());
-    }
-    
-    function loadVoicePreferences() {
-        const savedBotVoice = localStorage.getItem('botVoice');
-        const savedUserVoice = localStorage.getItem('userVoice');
-        const savedTtsEnabled = localStorage.getItem('ttsEnabled');
-        
-        if (savedBotVoice) botVoiceSelect.value = savedBotVoice;
-        if (savedUserVoice) userVoiceSelect.value = savedUserVoice;
-        if (savedTtsEnabled) {
-            isTtsEnabled = savedTtsEnabled === 'true';
-            ttsToggle.checked = isTtsEnabled;
-        }
-    }
-    
-    // Event listeners for voice settings
-    botVoiceSelect.addEventListener('change', saveVoicePreferences);
-    userVoiceSelect.addEventListener('change', saveVoicePreferences);
-    ttsToggle.addEventListener('change', () => {
-        isTtsEnabled = ttsToggle.checked;
-        saveVoicePreferences();
-        
-        if (!isTtsEnabled) {
-            stopSpeaking();
-        }
-    });
-
     // Add first scambaiter message to the chat
+    const addMessage = (content, sender) => {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${sender}`;
+        messageDiv.innerHTML = `<div class="message-content">${formatMessage(content)}</div>`;
+        chatMessages.appendChild(messageDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+        
+        // Speak the message if TTS is enabled
+        if (isTtsEnabled) {
+            speakSentences(content, sender);
+        }
+    };
+    
     addMessage("Hello there, dear. I'm Edna. I'm having some trouble with my computer today. It's been acting up something terrible. My grandson Tommy bought it for me last Christmas, but I'm afraid I'm not very good with these newfangled gadgets. Could you help me fix it?", "bot");
 
     // Send message when clicking the send button
@@ -221,31 +240,18 @@ NEVER reveal that you are scambaiting or that you understand they are a scammer.
         }
     }
 
-    function addMessage(content, sender) {
-        const messageDiv = document.createElement('div');
-        messageDiv.className = `message ${sender}`;
-        messageDiv.innerHTML = `<div class="message-content">${formatMessage(content)}</div>`;
-        chatMessages.appendChild(messageDiv);
-        chatMessages.scrollTop = chatMessages.scrollHeight;
-        
-        // Speak the message if TTS is enabled
-        if (isTtsEnabled && !currentlySpeaking) {
-            speakSentences(content, sender);
-        } else if (isTtsEnabled) {
-            // Add to queue if currently speaking
-            speakQueue.push({text: content, sender: sender});
+    const speakSentences = (text, sender) => {
+        // Add to queue if already speaking
+        if (currentlySpeaking) {
+            speakQueue.push({text: text, sender: sender});
+            return;
         }
-    }
-    
-    function speakSentences(text, sender) {
-        // Cancel any current speech
-        stopSpeaking();
-        
-        // Split text into sentences
-        const sentences = text.match(/[^.!?]+[.!?]+/g) || [text];
         
         // Set flag to indicate speaking is happening
         currentlySpeaking = true;
+        
+        // Split text into sentences
+        const sentences = text.match(/[^.!?]+[.!?]+/g) || [text];
         
         // Speak each sentence in sequence
         let currentIndex = 0;
@@ -254,63 +260,73 @@ NEVER reveal that you are scambaiting or that you understand they are a scammer.
             if (currentIndex < sentences.length) {
                 const sentence = sentences[currentIndex].trim();
                 if (sentence) {
-                    const utterance = new SpeechSynthesisUtterance(sentence);
+                    currentUtterance = new SpeechSynthesisUtterance(sentence);
                     
                     // Set voice based on sender
+                    const voices = speechSynthesis.getVoices();
                     const voiceIndex = sender === 'bot' 
                         ? parseInt(botVoiceSelect.value) 
                         : parseInt(userVoiceSelect.value);
                     
                     if (voices.length > voiceIndex) {
-                        utterance.voice = voices[voiceIndex];
+                        currentUtterance.voice = voices[voiceIndex];
                     }
                     
                     // Set properties based on sender (slower for elderly bot)
                     if (sender === 'bot') {
-                        utterance.rate = 0.9; // Slightly slower
-                        utterance.pitch = 1.1; // Slightly higher pitch
+                        currentUtterance.rate = 0.9; // Slightly slower
+                        currentUtterance.pitch = 1.1; // Slightly higher pitch
                     }
                     
-                    utterance.onend = () => {
+                    currentUtterance.onend = () => {
                         currentIndex++;
                         speakNextSentence();
                     };
                     
-                    synth.speak(utterance);
+                    speechSynthesis.speak(currentUtterance);
                 } else {
                     currentIndex++;
                     speakNextSentence();
                 }
             } else {
-                // Check if there are queued messages to speak
-                currentlySpeaking = false;
-                if (speakQueue.length > 0) {
-                    const nextItem = speakQueue.shift();
-                    speakSentences(nextItem.text, nextItem.sender);
-                }
+                // Process next item in queue if available
+                processNextInQueue();
             }
         };
         
         speakNextSentence();
     }
     
-    function stopSpeaking() {
-        synth.cancel();
+    const processNextInQueue = () => {
+        currentUtterance = null;
+        
+        if (speakQueue.length > 0) {
+            const nextItem = speakQueue.shift();
+            speakSentences(nextItem.text, nextItem.sender);
+        } else {
+            currentlySpeaking = false;
+        }
+    }
+    
+    const stopSpeaking = () => {
+        speechSynthesis.cancel();
         currentlySpeaking = false;
+        currentUtterance = null;
+        speakQueue = [];
     }
     
     // Add a stop speaking button to the header
     const stopSpeakingButton = document.getElementById('stop-speaking');
     stopSpeakingButton.addEventListener('click', stopSpeaking);
     
-    function formatMessage(text) {
+    const formatMessage = (text) => {
         // Convert URLs to clickable links
         return text.replace(/https?:\/\/[^\s]+/g, (url) => {
             return `<a href="${url}" target="_blank" rel="noopener noreferrer">${url}</a>`;
         }).replace(/\n/g, '<br>');
     }
     
-    function simulateSlowTyping(text) {
+    const simulateSlowTyping = (text) => {
         // For elderly realism, add a small delay before responding
         setTimeout(() => {
             addMessage(text, 'bot');

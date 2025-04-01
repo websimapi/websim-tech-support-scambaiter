@@ -8,14 +8,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const userVoiceSelect = document.getElementById('user-voice-select');
     const ttsToggle = document.getElementById('tts-toggle');
     
-    // Populate voice selection dropdowns
-    populateVoiceSelections();
-    
     // TTS Configuration
     let isTtsEnabled = true;
-    let speechSynthesis = window.speechSynthesis;
+    const speechSynthesis = window.speechSynthesis;
     let currentlySpeaking = false;
     let speakQueue = [];
+    
+    // Populate voice selection dropdowns
+    populateVoiceSelections();
     
     // Conversation history for the LLM
     let conversationHistory = [

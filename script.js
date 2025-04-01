@@ -23,6 +23,28 @@ document.addEventListener('DOMContentLoaded', () => {
         userInput.focus();
     });
     
+    // Function to format message text
+    const formatMessage = (text) => {
+        // Convert URLs to clickable links
+        return text.replace(/https?:\/\/[^\s]+/g, (url) => {
+            return `<a href="${url}" target="_blank" rel="noopener noreferrer">${url}</a>`;
+        }).replace(/\n/g, '<br>');
+    }
+    
+    // Add a message to the chat
+    const addMessage = (content, sender) => {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${sender}`;
+        messageDiv.innerHTML = `<div class="message-content">${formatMessage(content)}</div>`;
+        chatMessages.appendChild(messageDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+        
+        // Speak the message if TTS is enabled
+        if (isTtsEnabled) {
+            speakSentences(content, sender);
+        }
+    };
+    
     // Populate voice selection dropdowns
     const populateVoiceSelections = () => {
         // Get available voices and populate the dropdown
@@ -141,19 +163,6 @@ NEVER reveal that you are scambaiting or that you understand they are a scammer.
     ];
 
     // Add first scambaiter message to the chat
-    const addMessage = (content, sender) => {
-        const messageDiv = document.createElement('div');
-        messageDiv.className = `message ${sender}`;
-        messageDiv.innerHTML = `<div class="message-content">${formatMessage(content)}</div>`;
-        chatMessages.appendChild(messageDiv);
-        chatMessages.scrollTop = chatMessages.scrollHeight;
-        
-        // Speak the message if TTS is enabled
-        if (isTtsEnabled) {
-            speakSentences(content, sender);
-        }
-    };
-    
     addMessage("Hello there, dear. I'm Edna. I'm having some trouble with my computer today. It's been acting up something terrible. My grandson Tommy bought it for me last Christmas, but I'm afraid I'm not very good with these newfangled gadgets. Could you help me fix it?", "bot");
 
     // Send message when clicking the send button
@@ -318,13 +327,6 @@ NEVER reveal that you are scambaiting or that you understand they are a scammer.
     // Add a stop speaking button to the header
     const stopSpeakingButton = document.getElementById('stop-speaking');
     stopSpeakingButton.addEventListener('click', stopSpeaking);
-    
-    const formatMessage = (text) => {
-        // Convert URLs to clickable links
-        return text.replace(/https?:\/\/[^\s]+/g, (url) => {
-            return `<a href="${url}" target="_blank" rel="noopener noreferrer">${url}</a>`;
-        }).replace(/\n/g, '<br>');
-    }
     
     const simulateSlowTyping = (text) => {
         // For elderly realism, add a small delay before responding

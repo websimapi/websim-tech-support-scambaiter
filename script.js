@@ -10,12 +10,12 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // TTS Configuration
     let isTtsEnabled = true;
-    const speechSynthesis = window.speechSynthesis;
     let currentlySpeaking = false;
     let speakQueue = [];
     
-    // Populate voice selection dropdowns
-    populateVoiceSelections();
+    // Initialize the TTS system
+    let voices = [];
+    const synth = window.speechSynthesis;
     
     // Conversation history for the LLM
     let conversationHistory = [
@@ -54,12 +54,12 @@ NEVER reveal that you are scambaiting or that you understand they are a scammer.
     ];
 
     function populateVoiceSelections() {
-        // Get available voices and populate the dropdown
+        // Function to get and populate voices
         const populateVoices = () => {
-            const voices = speechSynthesis.getVoices();
+            voices = synth.getVoices();
             
             if (voices.length === 0) {
-                setTimeout(populateVoices, 100);
+                setTimeout(populateVoices, 500);
                 return;
             }
             
@@ -94,12 +94,15 @@ NEVER reveal that you are scambaiting or that you understand they are a scammer.
             loadVoicePreferences();
         };
         
+        // Initial population attempt
         populateVoices();
         
         // Handle voice list changes (happens asynchronously)
-        speechSynthesis.onvoiceschanged = populateVoices;
+        if (synth.onvoiceschanged !== undefined) {
+            synth.onvoiceschanged = populateVoices;
+        }
     }
-    
+
     function saveVoicePreferences() {
         localStorage.setItem('botVoice', botVoiceSelect.value);
         localStorage.setItem('userVoice', userVoiceSelect.value);
@@ -254,7 +257,6 @@ NEVER reveal that you are scambaiting or that you understand they are a scammer.
                     const utterance = new SpeechSynthesisUtterance(sentence);
                     
                     // Set voice based on sender
-                    const voices = speechSynthesis.getVoices();
                     const voiceIndex = sender === 'bot' 
                         ? parseInt(botVoiceSelect.value) 
                         : parseInt(userVoiceSelect.value);
@@ -274,7 +276,7 @@ NEVER reveal that you are scambaiting or that you understand they are a scammer.
                         speakNextSentence();
                     };
                     
-                    speechSynthesis.speak(utterance);
+                    synth.speak(utterance);
                 } else {
                     currentIndex++;
                     speakNextSentence();
@@ -293,7 +295,7 @@ NEVER reveal that you are scambaiting or that you understand they are a scammer.
     }
     
     function stopSpeaking() {
-        speechSynthesis.cancel();
+        synth.cancel();
         currentlySpeaking = false;
     }
     

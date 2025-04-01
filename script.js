@@ -31,7 +31,83 @@ document.addEventListener('DOMContentLoaded', () => {
         }).replace(/\n/g, '<br>');
     }
     
-    // Add a message to the chat
+    // Function to speak text using TTS
+    const speakSentences = (text, sender) => {
+        // Add to queue if already speaking
+        if (currentlySpeaking) {
+            speakQueue.push({text: text, sender: sender});
+            return;
+        }
+        
+        // Set flag to indicate speaking is happening
+        currentlySpeaking = true;
+        
+        // Split text into sentences
+        const sentences = text.match(/[^.!?]+[.!?]+/g) || [text];
+        
+        // Speak each sentence in sequence
+        let currentIndex = 0;
+        
+        const speakNextSentence = () => {
+            if (currentIndex < sentences.length) {
+                const sentence = sentences[currentIndex].trim();
+                if (sentence) {
+                    currentUtterance = new SpeechSynthesisUtterance(sentence);
+                    
+                    // Set voice based on sender
+                    const voices = speechSynthesis.getVoices();
+                    const voiceIndex = sender === 'bot' 
+                        ? parseInt(botVoiceSelect.value) 
+                        : parseInt(userVoiceSelect.value);
+                    
+                    if (voices.length > voiceIndex) {
+                        currentUtterance.voice = voices[voiceIndex];
+                    }
+                    
+                    // Set properties based on sender (slower for elderly bot)
+                    if (sender === 'bot') {
+                        currentUtterance.rate = 0.9; // Slightly slower
+                        currentUtterance.pitch = 1.1; // Slightly higher pitch
+                    }
+                    
+                    currentUtterance.onend = () => {
+                        currentIndex++;
+                        speakNextSentence();
+                    };
+                    
+                    speechSynthesis.speak(currentUtterance);
+                } else {
+                    currentIndex++;
+                    speakNextSentence();
+                }
+            } else {
+                // Process next item in queue if available
+                processNextInQueue();
+            }
+        };
+        
+        speakNextSentence();
+    }
+    
+    const processNextInQueue = () => {
+        currentUtterance = null;
+        
+        if (speakQueue.length > 0) {
+            const nextItem = speakQueue.shift();
+            speakSentences(nextItem.text, nextItem.sender);
+        } else {
+            currentlySpeaking = false;
+        }
+    }
+    
+    const stopSpeaking = () => {
+        speechSynthesis.cancel();
+        currentlySpeaking = false;
+        currentUtterance = null;
+        speakQueue = [];
+    }
+    
+    // Add message to the chat
     const addMessage = (content, sender) => {
         const messageDiv = document.createElement('div');
         messageDiv.className = `message ${sender}`;
@@ -249,85 +325,6 @@ NEVER reveal that you are scambaiting or that you understand they are a scammer.
         }
     }
 
-    const speakSentences = (text, sender) => {
-        // Add to queue if already speaking
-        if (currentlySpeaking) {
-            speakQueue.push({text: text, sender: sender});
-            return;
-        }
-        
-        // Set flag to indicate speaking is happening
-        currentlySpeaking = true;
-        
-        // Split text into sentences
-        const sentences = text.match(/[^.!?]+[.!?]+/g) || [text];
-        
-        // Speak each sentence in sequence
-        let currentIndex = 0;
-        
-        const speakNextSentence = () => {
-            if (currentIndex < sentences.length) {
-                const sentence = sentences[currentIndex].trim();
-                if (sentence) {
-                    currentUtterance = new SpeechSynthesisUtterance(sentence);
-                    
-                    // Set voice based on sender
-                    const voices = speechSynthesis.getVoices();
-                    const voiceIndex = sender === 'bot' 
-                        ? parseInt(botVoiceSelect.value) 
-                        : parseInt(userVoiceSelect.value);
-                    
-                    if (voices.length > voiceIndex) {
-                        currentUtterance.voice = voices[voiceIndex];
-                    }
-                    
-                    // Set properties based on sender (slower for elderly bot)
-                    if (sender === 'bot') {
-                        currentUtterance.rate = 0.9; // Slightly slower
-                        currentUtterance.pitch = 1.1; // Slightly higher pitch
-                    }
-                    
-                    currentUtterance.onend = () => {
-                        currentIndex++;
-                        speakNextSentence();
-                    };
-                    
-                    speechSynthesis.speak(currentUtterance);
-                } else {
-                    currentIndex++;
-                    speakNextSentence();
-                }
-            } else {
-                // Process next item in queue if available
-                processNextInQueue();
-            }
-        };
-        
-        speakNextSentence();
-    }
-    
-    const processNextInQueue = () => {
-        currentUtterance = null;
-        
-        if (speakQueue.length > 0) {
-            const nextItem = speakQueue.shift();
-            speakSentences(nextItem.text, nextItem.sender);
-        } else {
-            currentlySpeaking = false;
-        }
-    }
-    
-    const stopSpeaking = () => {
-        speechSynthesis.cancel();
-        currentlySpeaking = false;
-        currentUtterance = null;
-        speakQueue = [];
-    }
-    
-    // Add a stop speaking button to the header
-    const stopSpeakingButton = document.getElementById('stop-speaking');
-    stopSpeakingButton.addEventListener('click', stopSpeaking);
-    
     const simulateSlowTyping = (text) => {
         // For elderly realism, add a small delay before responding
         setTimeout(() => {

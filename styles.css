@@ -43,11 +43,12 @@ body {
 
 .voice-controls {
     display: flex;
-    justify-content: space-between;
+    justify-content: space-around;
     align-items: center;
-    gap: 10px;
+    gap: 15px;
     flex-wrap: wrap;
     font-size: 0.9rem;
+    padding: 5px 0;
 }
 
 .voice-selector {
@@ -57,16 +58,18 @@ body {
 }
 
 .voice-controls select {
-    padding: 3px;
+    padding: 4px 6px;
     border-radius: 4px;
     border: 1px solid #ddd;
     background-color: white;
     font-size: 0.8rem;
+    max-width: 150px;
 }
 
 .toggle-container {
     display: flex;
     align-items: center;
+    gap: 5px;
 }
 
 .tts-toggle {
@@ -122,10 +125,15 @@ input:checked + .tts-slider:before {
     padding: 5px 10px;
     cursor: pointer;
     font-size: 0.8rem;
+    transition: background-color 0.2s;
 }
 
 #stop-speaking:hover {
     background-color: #d32f2f;
+}
+
+#stop-speaking:active {
+    background-color: #b71c1c;
 }
 
 .chat-messages {
@@ -134,15 +142,17 @@ input:checked + .tts-slider:before {
     overflow-y: auto;
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 12px;
+    background-color: #f9f9f9;
 }
 
 .message {
     display: flex;
     max-width: 80%;
     padding: 10px 15px;
-    border-radius: 15px;
-    animation: fadeIn 0.3s ease-in-out;
+    border-radius: 18px;
+    animation: fadeIn 0.4s ease-out;
+    position: relative;
 }
 
 @keyframes fadeIn {
@@ -152,47 +162,64 @@ input:checked + .tts-slider:before {
 
 .user {
     align-self: flex-end;
-    background-color: #e3f2fd;
+    background-color: #d1eaff;
     border-bottom-right-radius: 5px;
+    color: #1a1a1a;
 }
 
 .bot {
     align-self: flex-start;
-    background-color: #f0f0f0;
+    background-color: #e0e0e0;
     border-bottom-left-radius: 5px;
+    color: #333;
 }
 
 .system {
     align-self: center;
-    background-color: #fff3cd;
-    border-radius: 5px;
+    background-color: #fff9c4;
+    border-radius: 8px;
     max-width: 90%;
     font-style: italic;
+    color: #555;
+    padding: 8px 12px;
+    font-size: 0.9em;
+    text-align: center;
 }
 
 .message-content {
     word-break: break-word;
-    line-height: 1.4;
+    line-height: 1.5;
+}
+
+.message-content a {
+    color: #0066cc;
+    text-decoration: underline;
+}
+
+.message-content a:hover {
+    color: #004c99;
 }
 
 .message.typing {
-    background-color: #f0f0f0;
+    background-color: #e0e0e0;
     border-bottom-left-radius: 5px;
     align-self: flex-start;
+    padding: 12px 15px;
 }
 
 .typing-indicator {
     display: flex;
-    gap: 3px;
+    align-items: center;
+    gap: 4px;
 }
 
 .typing-indicator span {
     width: 8px;
     height: 8px;
-    background-color: #999;
+    background-color: #888;
     border-radius: 50%;
     display: inline-block;
-    animation: typing 1s infinite ease-in-out;
+    animation: typing 1.2s infinite ease-in-out;
 }
 
 .typing-indicator span:nth-child(1) { animation-delay: 0s; }
@@ -200,29 +227,35 @@ input:checked + .tts-slider:before {
 .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
 
 @keyframes typing {
-    0%, 60%, 100% { transform: translateY(0); }
-    30% { transform: translateY(-5px); }
+    0%, 60%, 100% { transform: translateY(0); background-color: #888; }
+    30% { transform: translateY(-6px); background-color: #666; }
 }
 
 .chat-input-container {
     display: flex;
+    align-items: center;
     padding: 15px;
     border-top: 1px solid #eee;
+    background-color: #ffffff;
 }
 
 #user-input {
     flex-grow: 1;
-    padding: 10px 15px;
+    padding: 12px 18px;
     border: 1px solid #ddd;
-    border-radius: 20px;
+    border-radius: 25px;
     resize: none;
-    font-size: 16px;
+    font-size: 1rem;
     outline: none;
-    transition: border-color 0.2s;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    line-height: 1.4;
+    max-height: 100px;
+    overflow-y: auto;
 }
 
 #user-input:focus {
     border-color: #4a6fa5;
+    box-shadow: 0 0 5px rgba(74, 111, 165, 0.3);
 }
 
 #send-button {
@@ -231,27 +264,34 @@ input:checked + .tts-slider:before {
     color: white;
     border: none;
     border-radius: 50%;
-    width: 50px;
-    height: 50px;
+    width: 48px;
+    height: 48px;
     cursor: pointer;
     display: flex;
     justify-content: center;
     align-items: center;
-    transition: background-color 0.2s;
+    transition: background-color 0.2s, transform 0.1s;
+    flex-shrink: 0;
 }
 
 #send-button:hover {
     background-color: #3a5a8f;
 }
 
+#send-button:active {
+    transform: scale(0.95);
+}
+
 #send-button:disabled {
     background-color: #cccccc;
     cursor: not-allowed;
+    transform: none;
 }
 
 #send-button:after {
     content: '➤';
-    font-size: 20px;
+    font-size: 22px;
+    transform: translateX(1px);
 }
 
 .start-overlay {
@@ -260,44 +300,64 @@ input:checked + .tts-slider:before {
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.8);
+    background-color: rgba(0, 0, 0, 0.85);
     display: flex;
     justify-content: center;
     align-items: center;
     z-index: 1000;
+    opacity: 1;
+    transition: opacity 0.5s ease-out;
+}
+
+.start-overlay.hidden {
+    opacity: 0;
+    pointer-events: none;
 }
 
 .start-content {
     background-color: white;
-    padding: 30px;
+    padding: 40px;
     border-radius: 10px;
-    max-width: 500px;
+    max-width: 550px;
     text-align: center;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+    transform: scale(1);
+    transition: transform 0.5s ease-out;
+}
+
+.start-overlay.hidden .start-content {
+    transform: scale(0.9);
 }
 
 .start-content h2 {
     color: #4a6fa5;
-    margin-bottom: 15px;
+    margin-bottom: 20px;
+    font-size: 1.8rem;
 }
 
 .start-content p {
-    margin-bottom: 15px;
-    line-height: 1.5;
+    margin-bottom: 20px;
+    line-height: 1.6;
+    color: #555;
 }
 
 #start-button {
-    background-color: #4a6fa5;
+    background-color: #4CAF50;
     color: white;
     border: none;
-    padding: 12px 25px;
-    border-radius: 25px;
-    font-size: 16px;
+    padding: 14px 30px;
+    border-radius: 30px;
+    font-size: 1.1rem;
     cursor: pointer;
-    transition: background-color 0.2s;
-    margin-top: 10px;
+    transition: background-color 0.2s, transform 0.1s;
+    margin-top: 15px;
+    font-weight: 600;
 }
 
 #start-button:hover {
-    background-color: #3a5a8f;
+    background-color: #45a049;
+}
+
+#start-button:active {
+    transform: scale(0.98);
 }

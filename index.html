@@ -4,6 +4,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tech Support Scambaiter</title>
     <link rel="stylesheet" href="styles.css">
+    <script type="importmap">
+    {
+      "imports": {
+        "@visheratin/web-ai": "https://unpkg.com/@visheratin/web-ai@1.0.2/dist/esm/index.js",
+        "@visheratin/web-ai/init": "https://unpkg.com/@visheratin/web-ai@1.0.2/dist/esm/init.js"
+      }
+    }
+    </script>
+    <script type="module">
+      import * as webAI from '@visheratin/web-ai';
+      window.websim = webAI;
+    </script>
 </head>
 <body>
     <div class="chat-container">
@@ -11,11 +23,11 @@
             <h1>Tech Support Chat</h1>
             <div class="voice-controls">
                 <div class="voice-selector">
-                    <label for="bot-voice-select">Scambaiter:</label>
+                    <label for="bot-voice-select">Edna's Voice:</label>
                     <select id="bot-voice-select"></select>
                 </div>
                 <div class="voice-selector">
-                    <label for="user-voice-select">Your voice:</label>
+                    <label for="user-voice-select">Your Voice:</label>
                     <select id="user-voice-select"></select>
                 </div>
                 <div class="toggle-container">
@@ -29,27 +41,23 @@
             </div>
         </div>
         <div class="chat-messages" id="chat-messages">
-            <div class="message system">
-                <div class="message-content">
-                    Welcome to tech support. How can I assist you today?
-                </div>
-            </div>
         </div>
         <div class="chat-input-container">
-            <textarea id="user-input" placeholder="Type your message here..." rows="3"></textarea>
+            <textarea id="user-input" placeholder="Type your (scammer) message here..." rows="3"></textarea>
             <button id="send-button"></button>
         </div>
     </div>
-    
+
     <div id="start-overlay" class="start-overlay">
         <div class="start-content">
-            <h2>Tech Support Scambaiter Experience</h2>
-            <p>You'll interact with Edna, an elderly woman who pretends to be confused about technology to waste scammers' time.</p>
-            <p>Play the role of a tech support scammer trying to convince her that her computer has issues.</p>
-            <button id="start-button">Start Experience</button>
+            <h2>Tech Support Scambaiter</h2>
+            <p>You are the "tech support scammer". Your goal is to interact with Edna, an elderly woman roleplayed by an AI.</p>
+            <p>Edna is programmed to be confused and waste your time (scambaiting). Try to guide her through fake computer problems.</p>
+             <p>Enable your speakers/headphones for the full experience!</p>
+            <button id="start-button">Start Chat</button>
         </div>
     </div>
-    
+
     <script src="script.js"></script>
 <script defer src="https://static.cloudflareinsights.com/beacon.min.js/v8c78df7c7c0f484497ecbca7046644da1771523124516" integrity="sha512-8DS7rgIrAmghBFwoOTujcf6D9rXvH8xm8JQ1Ja01h9QX8EzXldiszufYa4IFfKdLUKTTrnSFXLDkUEOTrZQ8Qg==" data-cf-beacon='{"version":"2024.11.0","token":"4c6229722a6346bc8eb5cb0e5eae5d41","server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
 </body>

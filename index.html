@@ -9,6 +9,24 @@
     <div class="chat-container">
         <div class="chat-header">
             <h1>Tech Support Chat</h1>
+            <div class="voice-controls">
+                <div class="voice-selector">
+                    <label for="bot-voice-select">Scambaiter:</label>
+                    <select id="bot-voice-select"></select>
+                </div>
+                <div class="voice-selector">
+                    <label for="user-voice-select">Your voice:</label>
+                    <select id="user-voice-select"></select>
+                </div>
+                <div class="toggle-container">
+                    <label for="tts-toggle">TTS:</label>
+                    <label class="tts-toggle">
+                        <input type="checkbox" id="tts-toggle" checked>
+                        <span class="tts-slider"></span>
+                    </label>
+                </div>
+                <button id="stop-speaking">Stop Speaking</button>
+            </div>
         </div>
         <div class="chat-messages" id="chat-messages">
             <div class="message system">
@@ -19,7 +37,7 @@
         </div>
         <div class="chat-input-container">
             <textarea id="user-input" placeholder="Type your message here..." rows="3"></textarea>
-            <button id="send-button">Send</button>
+            <button id="send-button"></button>
         </div>
     </div>
     <script src="script.js"></script>
